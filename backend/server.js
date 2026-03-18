@@ -20,6 +20,12 @@ if (!fs.existsSync(certDir)) {
 }
 app.use("/certificados", express.static(certDir));
 
+// Redirigir /validar a /validar/ para asegurar que las rutas relativas (js/app.js) funcionen bien en la red local
+app.get("/validar", (req, res, next) => {
+  if (!req.url.endsWith("/")) { return res.redirect(301, req.url + "/"); }
+  next();
+});
+
 // Servir el portal de validación frontend (para compartir en la red local)
 const frontendDir = path.join(process.cwd(), "frontend");
 app.use("/validar", express.static(frontendDir));
