@@ -1,7 +1,12 @@
-const POLYGON_RPC = "https://1rpc.io/matic";
+const POLYGON_RPCS = [
+    "https://1rpc.io/matic",
+    "https://rpc.ankr.com/polygon",
+    "https://polygon-rpc.com",
+    "https://polygon.llamarpc.com"
+];
 const CONTRACT_ADDRESS = "0x0600b35d9987cfEeF9799d4e137ABdBaE223d708";
 
-// Minimal ABI just to read verifyCertificate
+// ABI unchanged
 const ABI = [
     "function verifyCertificate(bytes32 _hash) external view returns (bool)"
 ];
@@ -20,29 +25,38 @@ let rpcAvailable = false;
 let provider = null;
 let contract = null;
 
-// Initialization: check node health
+// Initialization: check node health with FALLBACKS
 async function init() {
-    try {
-        if (typeof ethers === 'undefined') {
-            throw new Error("Ethers.js library not loaded");
-        }
-        
-        provider = new ethers.JsonRpcProvider(POLYGON_RPC);
-        
-        // Timeout mechanism to check RPC health
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('RPC Timeout')), 5000));
-        await Promise.race([provider.getBlockNumber(), timeoutPromise]);
-
-        contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
-        rpcAvailable = true;
-        rpcStatusDiv.innerHTML = "🟢 Conectado a Polygon Mainnet";
-        rpcStatusDiv.style.color = "#10B981";
-    } catch (error) {
-        console.error("RPC Connection Error:", error);
-        rpcAvailable = false;
-        rpcStatusDiv.innerHTML = "🔴 Error de conexión con la red Blockchain (RPC caído o bloqueado). La validación no está disponible.";
-        rpcStatusDiv.style.color = "#EF4444";
+    if (typeof ethers === 'undefined') {
+        console.error("Ethers.js library not loaded");
+        return;
     }
+
+    rpcStatusDiv.innerHTML = "🔍 Buscando conexión con la red Blockchain...";
+
+    for (const rpc of POLYGON_RPCS) {
+        try {
+            console.log("Intentando conectar a:", rpc);
+            provider = new ethers.JsonRpcProvider(rpc);
+            
+            // Timeout mechanism: 3s check
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('RPC Timeout')), 3000));
+            await Promise.race([provider.getBlockNumber(), timeoutPromise]);
+
+            contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, provider);
+            rpcAvailable = true;
+            rpcStatusDiv.innerHTML = `🟢 Conectado vía ${new URL(rpc).hostname}`;
+            rpcStatusDiv.style.color = "#10B981";
+            return; // EXIT loop if success
+        } catch (error) {
+            console.warn(`RPC Fallido (${rpc}):`, error.message);
+        }
+    }
+
+    // ALL FAILED
+    rpcAvailable = false;
+    rpcStatusDiv.innerHTML = "🔴 Error: Red Blockchain bloqueada o caída en tu oficina. Intenta desde otra red.";
+    rpcStatusDiv.style.color = "#EF4444";
 }
 
 // Event Listeners for file upload
