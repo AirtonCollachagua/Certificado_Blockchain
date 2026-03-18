@@ -22,3 +22,5 @@ artifacts/
 # Archivos de SO
 .DS_Store
 Thumbs.db
+
+credentials/

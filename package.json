@@ -18,6 +18,7 @@
     "hardhat": "^2.28.0"
   },
   "dependencies": {
+    "@google-cloud/storage": "^7.19.0",
     "cors": "^2.8.6",
     "ethers": "^6.16.0",
     "express": "^5.2.1",

@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import "dotenv/config.js";
 import { processCertificate } from "./services/certificateService.js";
-import { uploadToGoogleDrive } from "./services/driveService.js";
+import { uploadToGoogleCloudBucket } from "./services/gcsService.js";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -140,15 +140,15 @@ app.post(["/api/webhook/moodle", "/api/webhook/moodle/"], async (req, res) => {
         console.log(`✅ PDF REAL descargado con éxito. Tamaño: ${pdfBuffer.length} bytes`);
         
         // --- GUARDAR EN LA BÓVEDA ---
-        const fileName = `certificado_curso_${courseid}_usuario_${userid}.pdf`;
+        const fileName = `certificado_id${contextinstanceid}_u${userid}.pdf`;
         const filePath = path.join(certDir, fileName);
         fs.writeFileSync(filePath, pdfBuffer);
         console.log(`📁 Certificado original guardado inmutablemente para descarga en: /certificados/${fileName}`);
         const publicUrl = process.env.PUBLIC_URL || `http://localhost:${port}`;
         console.log(`URL de descarga final: ${publicUrl}/certificados/${fileName}`);
         
-        // --- SUBIR A GOOGLE DRIVE (OPCIONAL/NUBE) ---
-        await uploadToGoogleDrive(pdfBuffer, fileName);
+        // --- SUBIR A GOOGLE CLOUD STORAGE BUCKET ---
+        await uploadToGoogleCloudBucket(pdfBuffer, fileName);
         // ----------------------------
       } else {
         throw new Error("Credenciales inválidas o Moodle rechazó el login.");
