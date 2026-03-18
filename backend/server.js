@@ -20,10 +20,6 @@ if (!fs.existsSync(certDir)) {
 }
 app.use("/certificados", express.static(certDir));
 
-// Servir el portal de validación frontend (para compartir en la red local)
-const frontendDir = path.join(process.cwd(), "frontend");
-app.use("/validar", express.static(frontendDir));
-
 // Logger global para ver CUALQUIER intento de conexión
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] Recibido: ${req.method} ${req.originalUrl}`);
