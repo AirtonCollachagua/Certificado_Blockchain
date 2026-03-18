@@ -54,20 +54,37 @@ Esta opción es la mejor porque **"secuestra" el botón original de Moodle** par
 
 <script>
 (function() {
-    // 1. Detectamos los datos de Moodle
+    // 1. Detectar datos de Moodle de forma ROBUSTA
     const urlParams = new URLSearchParams(window.location.search);
     const modId = urlParams.get('id'); 
-    const userId = M.cfg.userid;
+    
+    // Intentamos 3 formas de obtener el User ID
+    let userId = (typeof M !== 'undefined' && M.cfg && M.cfg.userid) ? M.cfg.userid : null;
+    
+    // Si falla, lo buscamos en el enlace del perfil (Casi siempre está en el menú superior)
+    if (!userId) {
+        const userLink = document.querySelector('a[href*="/user/profile.php?id="]');
+        if (userLink) {
+            const match = userLink.href.match(/id=(\d+)/);
+            if (match) userId = match[1];
+        }
+    }
+
+    if (!userId) {
+        console.error("No se pudo detectar el ID del usuario de Moodle.");
+        alert("Atención: No se detectó tu sesión de usuario. Intenta recargar la página.");
+        return;
+    }
+
     const bucket = "certificados_geosys";
     const gcsLink = `https://storage.googleapis.com/${bucket}/certificado_id${modId}_u${userId}.pdf`;
 
     // 2. Buscamos el botón original de Moodle y lo ocultamos
-    // Buscamos cualquier botón que diga "Descargar certificado"
     const originalBtn = Array.from(document.querySelectorAll('button, input[type="submit"]'))
                         .find(el => el.textContent.includes('Descargar certificado') || el.value === 'Descargar certificado');
     
     if (originalBtn) {
-        originalBtn.style.display = 'none'; // Ocultamos el botón original que genera el PDF "mutante"
+        originalBtn.style.display = 'none'; 
     }
 
     const btnGenerar = document.getElementById('btn-generar-bc');
@@ -79,8 +96,6 @@ Esta opción es la mejor porque **"secuestra" el botón original de Moodle** par
         btnGenerar.innerHTML = "⌛ Procesando en Blockchain... (No cierres esta página)";
         btnGenerar.style.opacity = "0.7";
 
-        // --- TRUCO MAESTRO: Ejecutamos el botón original en segundo plano ---
-        // Esto dispara el Webhook pero el navegador NO descarga el archivo físico
         if (originalBtn) {
             const form = originalBtn.closest('form');
             if (form) {
@@ -89,21 +104,21 @@ Esta opción es la mejor porque **"secuestra" el botón original de Moodle** par
                     method: 'POST',
                     body: formData
                 }).then(() => {
-                    console.log("Webhook disparado exitosamente.");
+                    console.log("Webhook disparado: cert_id" + modId + "_u" + userId);
                     
-                    // Esperamos 4 segundos a que el Robot de Node.js termine de subir a GCS y registrar en Polygon
+                    // Esperamos 4 segundos a que el Robot procese
                     setTimeout(() => {
                         btnGenerar.style.display = 'none';
                         btnDescargar.href = gcsLink;
                         btnDescargar.style.display = 'inline-block';
-                        txtStatus.innerHTML = "✅ ¡Listo! Tu certificado ha sido emitido y sellado en el bloque. Descárgalo aquí:";
+                        txtStatus.innerHTML = "✅ ¡Listo! Tu certificado ha sido emitido y sellado. Descárgalo aquí:";
                     }, 4000);
                 }).catch(err => {
                     alert("Error al conectar con Moodle. Por favor recarga la página.");
                 });
             }
         } else {
-            alert("No se encontró el botón de generación. Asegúrate de estar en la página del certificado.");
+            alert("No se encontró el botón de generación. Recarga la página.");
         }
     };
 })();
