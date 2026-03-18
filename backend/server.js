@@ -140,7 +140,7 @@ app.post(["/api/webhook/moodle", "/api/webhook/moodle/"], async (req, res) => {
         console.log(`✅ PDF REAL descargado con éxito. Tamaño: ${pdfBuffer.length} bytes`);
         
         // --- GUARDAR EN LA BÓVEDA ---
-        const fileName = `certificado_id${contextinstanceid}_u${userid}.pdf`;
+        const fileName = `certificado_id${req.body.contextinstanceid}_u${req.body.userid}.pdf`;
         const filePath = path.join(certDir, fileName);
         fs.writeFileSync(filePath, pdfBuffer);
         console.log(`📁 Certificado original guardado inmutablemente para descarga en: /certificados/${fileName}`);
