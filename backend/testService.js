@@ -1,0 +1,1 @@
+import { processCertificate } from './services/certificateService.js'; processCertificate({ studentName: 'Test Student', courseName: 'Blockchain 101' }).then(res => console.log('Successfully generated test PDF with certId:', res.certId)).catch(console.error);  

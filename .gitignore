@@ -1,0 +1,24 @@
+# Dependencias de Node
+node_modules/
+
+# Archivos de Entorno (Contraseñas y Llaves)
+.env
+.env.*
+!.env.example
+
+# Credenciales de Google Drive
+google-credentials.json
+
+# Archivos Locales y de Pruebas
+certificados/
+certificado_backend.pdf
+moodle_view.html
+*.log
+
+# Hardhat (Contratos Compilados)
+cache/
+artifacts/
+
+# Archivos de SO
+.DS_Store
+Thumbs.db

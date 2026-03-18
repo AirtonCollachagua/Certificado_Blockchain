@@ -1,0 +1,1 @@
+const payload = { eventname: '\\mod_customcert\\event\\issue_created', userid: '3', courseid: '3', objectid: 2, timecreated: Math.floor(Date.now() / 1000) }; fetch('http://localhost:3000/api/webhook/moodle', { method: 'POST', body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } }).then(r => r.json()).then(console.log).catch(console.error);  
